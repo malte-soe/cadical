@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <vector>
 
+#include "clause.hpp"
+
 namespace CaDiCaL {
 
 /*========================================================================*/
@@ -197,6 +199,7 @@ class Terminator;
 class ClauseIterator;
 class WitnessIterator;
 class LearnSource;
+class Rater;
 
 /*------------------------------------------------------------------------*/
 
@@ -287,6 +290,9 @@ public:
 
   void connect_learn_source (LearnSource * learnSource);
   void disconnect_learn_source ();
+
+  void connect_rater (Rater * rater);
+  void disconnect_rater ();
 
   struct Statistics {
     int64_t conflicts;    // generated conflicts in 'propagate'
@@ -862,6 +868,13 @@ public:
   virtual ~LearnSource () { }
   virtual bool hasNextClause () = 0;
   virtual const std::vector<int>& getNextClause () = 0;
+};
+
+class Rater {
+public:
+  virtual ~Rater () { }
+  virtual bool rating () = 0;
+  virtual void rate (const std::vector<Clause*>& clauses) = 0;
 };
 
 /*------------------------------------------------------------------------*/

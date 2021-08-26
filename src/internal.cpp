@@ -202,6 +202,7 @@ int Internal::cdcl_loop_with_inprocessing () {
     else if (terminated_asynchronously ())   // externally terminated
       break;
     else if (importing ()) import_redundant_clauses (res);
+    else if (rating ()) rate_clauses ();
     else if (restarting ()) restart ();      // restart by backtracking
     else if (rephasing ()) rephase ();       // reset variable phases
     else if (reducing ()) reduce ();         // collect useless clauses
@@ -219,6 +220,15 @@ int Internal::cdcl_loop_with_inprocessing () {
   STOP (search);
 
   return res;
+}
+
+bool Internal::rating () {
+  return external->rater != 0 && external->rater->rating();
+}
+
+void Internal::rate_clauses () {
+  if (external->rater == 0) return;
+  external->rater->rate(clauses);
 }
 
 bool Internal::importing () {

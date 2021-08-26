@@ -741,6 +741,13 @@ void Solver::disconnect_learn_source () {
   external->learnSource = 0;
 }
 
+void Solver::connect_rater (Rater * rater) {
+  external->rater = rater;
+}
+void Solver::disconnect_rater () {
+  external->rater = 0;
+}
+
 Solver::Statistics Solver::get_stats () {
   Statistics s;
   s.conflicts = internal->stats.conflicts;

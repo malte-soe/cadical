@@ -86,6 +86,7 @@ struct External {
 
   Learner * learner;
   LearnSource * learnSource;
+  Rater * rater;
 
   void export_learned_empty_clause ();
   void export_learned_unit_clause (int ilit);

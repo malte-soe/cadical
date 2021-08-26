@@ -934,6 +934,10 @@ struct Internal {
       return (f.assumed & bit) != 0;
     }
 
+    // Calculate ratings for clauses of interest.
+    bool rating ();
+    void rate_clauses ();
+
     // Import learnt clauses from an external source.
     bool importing ();
     void import_redundant_clauses (int& res);
