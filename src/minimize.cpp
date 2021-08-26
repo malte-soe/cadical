@@ -15,6 +15,8 @@ namespace CaDiCaL {
 // also aborting if the earliest seen literal was assigned afterwards.
 
 bool Internal::minimize_literal (int lit, int depth) {
+  LOG("attempt to minimize lit %d at depth %d", lit, depth);
+  assert(val(lit) > 0);
   Flags & f = flags (lit);
   Var & v = var (lit);
   if (!v.level || f.removable || f.keep) return true;
@@ -39,16 +41,14 @@ bool Internal::minimize_literal (int lit, int depth) {
 }
 
 // Sorting the clause before minimization with respect to the trail order
-// (literals with smaller trail height first) seems to be natural and could
-// help minimizing required recursion depth.  This might have the potential
-// to simplify the algorithm too, but we still have to check that this has
-// any effect in practice.  It clearly seems not harmful, and learned
-// clauses have to be sorted anyhow.
+// (literals with smaller trail height first) is necessary but natural and
+// might help to minimize the required recursion depth too.
 
 struct minimize_trail_positive_rank {
   Internal * internal;
   minimize_trail_positive_rank (Internal * s) : internal (s) { }
-  int operator () (const int & a) const {
+  typedef int Type;
+  Type operator () (const int & a) const {
     assert (internal->val (a));
     return internal->var (a).trail;
   }
@@ -67,13 +67,7 @@ void Internal::minimize_clause () {
   LOG (clause, "minimizing first UIP clause");
 
   external->check_learned_clause (); // check 1st UIP learned clause first
-
-  // Sort the literals heuristically along assignment order with the hope to
-  // hit the recursion limit 'opts.minimizedepth' less frequently.
-  //
-  MSORT (opts.radixsortlim,
-    clause.begin (), clause.end (),
-    minimize_trail_positive_rank (this), minimize_trail_smaller (this));
+  minimize_sort_clause();
 
   assert (minimized.empty ());
   const auto end = clause.end ();
@@ -87,14 +81,23 @@ void Internal::minimize_clause () {
   STOP (minimize);
 }
 
+// Sort the literals in reverse assignment order (thus trail order) to
+// establish the base case of the recursive minimization algorithm in the
+// positive case (where a literal with 'keep' true is hit).
+//
+void Internal::minimize_sort_clause () {
+  MSORT(opts.radixsortlim, clause.begin(), clause.end(),
+        minimize_trail_positive_rank(this), minimize_trail_smaller(this));
+}
+
 void Internal::clear_minimized_literals () {
   LOG ("clearing %zd minimized literals", minimized.size ());
   for (const auto & lit : minimized) {
     Flags & f = flags (lit);
-    f.poison = f.removable = false;
+    f.poison = f.removable = f.shrinkable = false;
   }
   for (const auto & lit : clause)
-    flags (lit).keep = false;
+    assert(!flags(lit).shrinkable), flags(lit).keep = flags(lit).shrinkable = false;
   minimized.clear ();
 }
 

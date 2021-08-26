@@ -548,10 +548,10 @@ int Solver::lookahead () {
   return lit;
 }
 
-Solver::CubesWithStatus Solver::generate_cubes (int depth) {
+Solver::CubesWithStatus Solver::generate_cubes (int depth, int min_depth) {
   TRACE ("lookahead_cubes");
   REQUIRE_VALID_OR_SOLVING_STATE ();
-  auto cubes {external->generate_cubes (depth)};
+  auto cubes = external->generate_cubes (depth, min_depth);
   TRACE ("lookahead_cubes");
 
   CubesWithStatus cubes2;
@@ -948,7 +948,7 @@ void Solver::resources () {
 /*------------------------------------------------------------------------*/
 
 const char * Solver::read_dimacs (File * file, int & vars, int strict,
-				  bool * incremental, vector<int> * cubes)
+                                  bool * incremental, vector<int> * cubes)
 {
   REQUIRE_VALID_STATE ();
   REQUIRE (state () == CONFIGURING,
@@ -993,7 +993,7 @@ Solver::read_dimacs (const char * path, int & vars, int strict) {
 const char *
 Solver::read_dimacs (FILE * external_file,
                      const char * name, int & vars, int strict,
-		     bool & incremental, vector<int> & cubes) {
+                     bool & incremental, vector<int> & cubes) {
   LOG_API_CALL_BEGIN ("read_dimacs", name);
   REQUIRE_VALID_STATE ();
   REQUIRE (state () == CONFIGURING,
@@ -1009,7 +1009,7 @@ Solver::read_dimacs (FILE * external_file,
 
 const char *
 Solver::read_dimacs (const char * path, int & vars, int strict,
-		     bool & incremental, vector<int> & cubes) {
+                     bool & incremental, vector<int> & cubes) {
   LOG_API_CALL_BEGIN ("read_dimacs", path);
   REQUIRE_VALID_STATE ();
   REQUIRE (state () == CONFIGURING,

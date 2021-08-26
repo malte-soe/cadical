@@ -257,23 +257,24 @@ int External::lookahead () {
   return elit;
 }
 
-CaDiCaL::CubesWithStatus External::generate_cubes (int depth) {
+CaDiCaL::CubesWithStatus External::generate_cubes (int depth, int min_depth = 0) {
   reset_extended ();
   update_molten_literals ();
   reset_limits ();
-  auto cubes {internal->generate_cubes (depth)};
+  auto cubes = internal->generate_cubes (depth, min_depth);
   auto externalize = [this](int ilit) {
     const int elit = ilit ? internal->externalize (ilit) : 0;
     MSG ("lookahead internal %d external %d", ilit, elit);
     return elit;
   };
   auto externalize_map = [this, externalize](std::vector<int> cube) {
+    (void) this;
     MSG("Cube : ");
     std::for_each(begin(cube), end(cube), externalize);
   };
-    std::for_each(begin(cubes.cubes), end(cubes.cubes), externalize_map);
+  std::for_each(begin(cubes.cubes), end(cubes.cubes), externalize_map);
 
-    return cubes;
+  return cubes;
 }
 
 /*------------------------------------------------------------------------*/
@@ -390,16 +391,63 @@ void External::check_assumptions_failing () {
 
 /*------------------------------------------------------------------------*/
 
-bool External::traverse_all_frozen_units_as_clauses (ClauseIterator & it) {
+// Traversal of unit clauses is implemented here.
 
+// In principle we want to traverse the clauses of the simplified formula
+// only, particularly eliminated variables should be completely removed.
+// This poses the question what to do with unit clauses.  Should they be
+// considered part of the simplified formula or of the witness to construct
+// solutions for the original formula?  Ideally they should be considered
+// to be part of the witness only, i.e., as they have been simplified away.
+
+// Therefore we distinguish frozen and non-frozen units during clause
+// traversal.  Frozen units are treated as unit clauses while non-frozen
+// units are treated as if they were already eliminated and put on the
+// extension stack as witness clauses.
+
+// Furthermore, eliminating units during 'compact' could be interpreted as
+// variable elimination, i.e., just add the resolvents (remove falsified
+// literals), then drop the clauses with the unit, and push the unit on the
+// extension stack.  This is of course only OK if the user did not freeze
+// that variable (even implicitly during assumptions).
+
+// Thanks go to Fahiem Bacchus for asking why there is a necessity to
+// distinguish these two cases (frozen and non-frozen units).  The answer is
+// that it is not strictly necessary, and this distinction could be avoided
+// by always treating units as remaining unit clauses, thus only using the
+// first of the two following functions and dropping the 'if (!frozen (idx))
+// continue;' check in it.  This has however the down-side that those units
+// are still in the simplified formula and only as units.  I would not
+// consider such a formula as really being 'simplified'. On the other hand
+// if the user explicitly freezes a literal, then it should continue to be in
+// the simplified formula during traversal.  So also only using the second
+// function is not ideal.
+
+// There is however a catch where this solution breaks down (in the sense of
+// producing less optimal results - that is keeping units in the formula
+// which better would be witness clauses).  The problem is with compact
+// preprocessing which removes eliminated but also fixed internal variables.
+// One internal unit (fixed) variable is kept and all the other external
+// literals which became unit are mapped to that internal literal (negated
+// or positively).  Compact is called non-deterministically from the point
+// of the user and thus there is no control on when this happens.  If
+// compact happens those external units are mapped to a single internal
+// literal now and then all share the same 'frozen' counter.   So if the
+// user freezes one of them all in essence get frozen, which in turn then
+// makes a difference in terms of traversing such a unit as unit clause or
+// as unit witness.
+
+bool
+External::traverse_all_frozen_units_as_clauses (ClauseIterator & it)
+{
   if (internal->unsat) return true;
 
   vector<int> clause;
 
   for (auto idx : vars) {
+    if (!frozen (idx)) continue;
     const int tmp = fixed (idx);
     if (!tmp) continue;
-    if (!frozen (idx)) continue;
     int unit = tmp < 0 ? -idx : idx;
     clause.push_back (unit);
     if (!it.clause (clause))
@@ -409,8 +457,6 @@ bool External::traverse_all_frozen_units_as_clauses (ClauseIterator & it) {
 
   return true;
 }
-
-/*------------------------------------------------------------------------*/
 
 bool
 External::traverse_all_non_frozen_units_as_witnesses (WitnessIterator & it)

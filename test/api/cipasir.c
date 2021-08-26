@@ -7,9 +7,13 @@
 #include <assert.h>
 #include <signal.h>
 #include <stdio.h>
-#include <unistd.h>
+#include <sys/time.h>
 
+#if __GNUC__ > 4 || defined(__llvm__)
 static const int n = 8;
+#else
+static const int n = 10;
+#endif
 
 static int ph (int p, int h) {
   assert (0 <= p), assert (p < n + 1);
@@ -59,7 +63,7 @@ static void (*saved)(int);
 static void handler (int sig) {
   assert (sig == SIGALRM);
   signal (SIGALRM, saved);
-  terminate = 1;
+  *(volatile int *) & terminate = 1;
 }
 
 static void * solvers[2];
@@ -80,11 +84,26 @@ int main () {
             ++round, active, learners[active].learned);
     fflush (stdout);
     saved = signal (SIGALRM, handler);
-    ualarm (2e4, 0);
+#if __GNUC__ > 4 || defined(__llvm__)
+    struct timeval value;
+    value.tv_sec = 0;
+    value.tv_usec = 2e4;
+
+    struct timeval interval;
+    interval.tv_sec = 0;
+    interval.tv_usec = 0;
+
+    struct itimerval t;
+    t.it_interval = interval;
+    t.it_value = value;
+    setitimer(0, &t, NULL);
+#else
+    alarm (1);
+#endif
     ipasir_set_terminate (solvers[active], &terminate, terminator);
     res = ipasir_solve (solvers[active]);
     if (res) break;
-    terminate = 0;
+    * (volatile int *) &terminate = 0;
     active = !active;
   }
   for (int i = 0; i < 2; i++)
