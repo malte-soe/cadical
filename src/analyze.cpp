@@ -737,7 +737,7 @@ void Internal::analyze () {
   if (size > 1) {
     if (opts.minimize) minimize_clause ();
     size = (int) clause.size ();
-    if (external->learner) external->export_learned_large_clause (clause);
+    if (external->learner) external->export_learned_large_clause (clause, glue);
   } else if (external->learner) external->export_learned_unit_clause (-uip);
 
   // Update actual size statistics.

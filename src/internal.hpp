@@ -996,6 +996,10 @@ struct Internal {
   void reset_solving ();
   int solve (bool preprocess_only = false);
 
+  // Import learnt clauses from an external source.
+  bool importing ();
+  void import_redundant_clauses (int& res);
+
   // Perform look ahead and return the most occurring literal.
   //
   int lookahead();
