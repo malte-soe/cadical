@@ -5,8 +5,6 @@
 #include <cstdint>
 #include <vector>
 
-#include "clause.hpp"
-
 namespace CaDiCaL {
 
 /*========================================================================*/
@@ -186,6 +184,7 @@ enum State
 
 // Opaque classes needed in the API and declared in the same namespace.
 
+class Clause;
 class File;
 struct Internal;
 struct External;
