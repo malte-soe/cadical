@@ -228,17 +228,17 @@ bool Internal::rating () {
 
 void Internal::rate_clauses () {
   if (external->rater == 0) return;
-  std::vector<Clause *> sortedClauses;
+  std::vector<Clause *> matchedClauses;
   std::vector<int> coi = external->rater->getClauses();
   std::vector<int> currentClause;
-  for (size_t i = 1; i < coi.size(); i++) {
+  for (size_t i = 1/* skip glue */; i < coi.size(); i++) {
     int elit = coi[i];
     if (elit != 0) {
       int ilit = external->internalize(elit);
       currentClause.push_back(ilit);
     } else {
       size_t j;
-      for (j = 1; j < clauses.size(); j++) {
+      for (j = 0; j < clauses.size(); j++) {
         const const_literal_iterator end = clauses[j]->end();
         literal_iterator l;
         size_t counter = 0;
@@ -249,18 +249,18 @@ void Internal::rate_clauses () {
           counter++;
         }
         if (counter == currentClause.size()) {
-          sortedClauses.push_back(clauses[j]);
+          matchedClauses.push_back(clauses[j]);
           break; // clause found
         }
       }
       if (j == clauses.size()) {
-        sortedClauses.push_back(nullptr); // clause does not exist
+        matchedClauses.push_back(nullptr); // clause does not exist
       }
       currentClause.clear();
       i++; // skip glue
     }
   }
-  external->rater->rate(sortedClauses);
+  external->rater->rate(matchedClauses);
 }
 
 bool Internal::importing () {
