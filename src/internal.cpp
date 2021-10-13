@@ -223,12 +223,14 @@ int Internal::cdcl_loop_with_inprocessing () {
 }
 
 bool Internal::rating () {
-  return external->rater != 0 && external->rater->rating();
+  return level == 0 && external->rater != 0 
+      && external->rater->rating();
 }
 
 void Internal::rate_clauses () {
   if (external->rater == 0) return;
-  external->rater->rate(clauses);
+  std::function<int(int)> ext = std::bind(&Internal::externalize, this, std::placeholders::_1);
+  external->rater->rate(clauses, ext);
 }
 
 bool Internal::importing () {

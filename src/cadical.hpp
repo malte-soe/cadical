@@ -873,7 +873,7 @@ class Rater {
 public:
   virtual ~Rater () { }
   virtual bool rating () = 0;
-  virtual void rate (const std::vector<Clause*>& clauses) = 0;
+  virtual void rate (const std::vector<Clause*>& clauses, const std::function<int(int)> externalize) = 0;
 };
 
 /*------------------------------------------------------------------------*/
