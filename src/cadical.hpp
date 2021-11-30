@@ -874,6 +874,7 @@ public:
   virtual ~Rater () { }
   virtual bool rating () = 0;
   virtual void rate (const std::vector<Clause*>& clauses, const std::function<int(int)> externalize) = 0;
+  virtual void clauseDeleted(Clause* clause) = 0;
 };
 
 /*------------------------------------------------------------------------*/
