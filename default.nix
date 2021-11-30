@@ -12,6 +12,6 @@ llvmPackages_11.stdenv.mkDerivation rec {
   nativeBuildInputs = [ cmake ];
   shellHook = ''
     export MACOSX_DEPLOYMENT_TARGET="10.15"
-    mkdir -p build && cd build && cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=YES && cd ..
+    /* mkdir -p build && cd build && cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=YES && cd .. */
   '';
 }
