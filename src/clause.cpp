@@ -254,7 +254,6 @@ void Internal::delete_clause (Clause * c) {
 // 'check_clause_stats' after garbage collection in debugging mode.
 //
 void Internal::mark_garbage (Clause * c) {
-  external->rater->clauseDeleted(c);
 
   assert (!c->garbage);
 

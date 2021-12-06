@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstdint>
 #include <vector>
+#include <functional>
 
 namespace CaDiCaL {
 
@@ -873,8 +874,10 @@ class Rater {
 public:
   virtual ~Rater () { }
   virtual bool rating () = 0;
-  virtual void rate (const std::vector<Clause*>& clauses, const std::function<int(int)> externalize) = 0;
-  virtual void clauseDeleted(Clause* clause) = 0;
+  virtual void rate (const std::vector<Clause*>& clauses) = 0;
+  virtual void setExternalize(std::function<int(int)> function) = 0;
+  virtual void clauseDeleted(const Clause* clause) = 0;
+  virtual void clauseDeleted(const int* begin, int size) = 0;
 };
 
 /*------------------------------------------------------------------------*/

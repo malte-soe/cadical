@@ -89,7 +89,10 @@ void Internal::mark_useless_redundant_clauses_as_garbage () {
     if (used) c->used--;
     if (c->hyper) {                 // Hyper binary and ternary resolvents
       assert (c->size <= 3);        // are only kept for one reduce round
-      if (!used) mark_garbage (c);  // (even if 'c->keep' is true) unless
+      if (!used) {
+        mark_garbage (c);  // (even if 'c->keep' is true) unless
+        external->rater->clauseDeleted (c);
+      }
       continue;                     //  used recently.
     }
     if (used) continue;             // Do keep recently used clauses.
@@ -117,6 +120,7 @@ void Internal::mark_useless_redundant_clauses_as_garbage () {
     Clause * c = *i++;
     LOG (c, "marking useless to be collected");
     mark_garbage (c);
+    external->rater->clauseDeleted (c);
     stats.reduced++;
   }
 

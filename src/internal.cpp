@@ -229,8 +229,7 @@ bool Internal::rating () {
 
 void Internal::rate_clauses () {
   if (external->rater == 0) return;
-  std::function<int(int)> ext = std::bind(&Internal::externalize, this, std::placeholders::_1);
-  external->rater->rate(clauses, ext);
+  external->rater->rate(clauses);
 }
 
 bool Internal::importing () {
@@ -297,6 +296,7 @@ void Internal::import_redundant_clauses (int& res) {
 
       if (!addClause) {
         //printf("Discard clause\n");
+        external->rater->clauseDeleted(&cls[1], cls.size());
         clause.clear ();
         continue;
       }
@@ -321,16 +321,21 @@ void Internal::import_redundant_clauses (int& res) {
       bool add = true;
       if (external->marked (external->witness, unitLit)) {
         // Do not learn unit clause if marked as witness
+        external->rater->clauseDeleted(&cls[0], cls.size());
         continue;
       }
       int ilit = external->internalize (unitLit);
       auto& f = flags(ilit);
       if (f.eliminated () || f.substituted ()) {
         // Do not import eliminated or substituted literal
+        external->rater->clauseDeleted(&cls[0], cls.size());
         continue;
       }
       // Do not import units which are already fixed
-      if (f.status == Flags::FIXED) continue;
+      if (f.status == Flags::FIXED) {
+        external->rater->clauseDeleted(&cls[0], cls.size());
+        continue;
+      }
       // Actually add the unit clause
       if (add) assign_original_unit (ilit);
     }
