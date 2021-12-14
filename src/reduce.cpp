@@ -91,7 +91,6 @@ void Internal::mark_useless_redundant_clauses_as_garbage () {
       assert (c->size <= 3);        // are only kept for one reduce round
       if (!used) {
         mark_garbage (c);  // (even if 'c->keep' is true) unless
-        external->rater->clauseDeleted (c);
       }
       continue;                     //  used recently.
     }
@@ -116,6 +115,7 @@ void Internal::mark_useless_redundant_clauses_as_garbage () {
 
   auto i = stack.begin ();
   const auto t = i + target;
+  external->rater->lock ();
   while (i != t) {
     Clause * c = *i++;
     LOG (c, "marking useless to be collected");
@@ -123,6 +123,7 @@ void Internal::mark_useless_redundant_clauses_as_garbage () {
     external->rater->clauseDeleted (c);
     stats.reduced++;
   }
+  external->rater->unlock ();
 
   lim.keptsize = lim.keptglue = 0;
 

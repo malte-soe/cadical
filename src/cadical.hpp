@@ -878,6 +878,8 @@ public:
   virtual void setExternalize(std::function<int(int)> function) = 0;
   virtual void clauseDeleted(const Clause* clause) = 0;
   virtual void clauseDeleted(const int* begin, int size) = 0;
+  virtual void lock() = 0;
+  virtual void unlock() = 0;
 };
 
 /*------------------------------------------------------------------------*/

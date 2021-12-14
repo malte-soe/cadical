@@ -242,6 +242,7 @@ void Internal::import_redundant_clauses (int& res) {
   if (res != 0) return;
 
   // Import external clauses.
+  external->rater->lock ();
   while (external->learnSource->hasNextClause ()) {
 
     // Fetch pointer to 1st literal and size of the clause (plus glue)
@@ -350,6 +351,7 @@ void Internal::import_redundant_clauses (int& res) {
       return;
     }
   }
+  external->rater->unlock ();
 }
 
 /*------------------------------------------------------------------------*/
