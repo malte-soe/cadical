@@ -81,6 +81,7 @@ void Internal::mark_useless_redundant_clauses_as_garbage () {
 
   stack.reserve (stats.current.redundant);
 
+  external->rater->lock ();
   for (const auto & c : clauses) {
     if (!c->redundant) continue;    // Keep irredundant.
     if (c->garbage) continue;       // Skip already marked.
@@ -91,6 +92,7 @@ void Internal::mark_useless_redundant_clauses_as_garbage () {
       assert (c->size <= 3);        // are only kept for one reduce round
       if (!used) {
         mark_garbage (c);  // (even if 'c->keep' is true) unless
+        external->rater->clauseDeleted (c);
       }
       continue;                     //  used recently.
     }
@@ -99,6 +101,7 @@ void Internal::mark_useless_redundant_clauses_as_garbage () {
 
     stack.push_back (c);
   }
+  external->rater->unlock ();
 
   stable_sort (stack.begin (), stack.end (), reduce_less_useful ());
 
