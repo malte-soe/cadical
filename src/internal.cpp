@@ -223,7 +223,8 @@ int Internal::cdcl_loop_with_inprocessing () {
 }
 
 bool Internal::rating () {
-  return external->rater != 0 && external->rater->rating();
+  return level == 0 && external->rater != 0 
+      && external->rater->rating();
 }
 
 void Internal::rate_clauses () {
@@ -241,6 +242,7 @@ void Internal::import_redundant_clauses (int& res) {
   if (res != 0) return;
 
   // Import external clauses.
+  external->rater->lock ();
   while (external->learnSource->hasNextClause ()) {
 
     // Fetch pointer to 1st literal and size of the clause (plus glue)
@@ -295,6 +297,7 @@ void Internal::import_redundant_clauses (int& res) {
 
       if (!addClause) {
         //printf("Discard clause\n");
+        external->rater->clauseDeleted(&cls[1], cls.size());
         clause.clear ();
         continue;
       }
@@ -319,16 +322,21 @@ void Internal::import_redundant_clauses (int& res) {
       bool add = true;
       if (external->marked (external->witness, unitLit)) {
         // Do not learn unit clause if marked as witness
+        external->rater->clauseDeleted(&cls[0], cls.size());
         continue;
       }
       int ilit = external->internalize (unitLit);
       auto& f = flags(ilit);
       if (f.eliminated () || f.substituted ()) {
         // Do not import eliminated or substituted literal
+        external->rater->clauseDeleted(&cls[0], cls.size());
         continue;
       }
       // Do not import units which are already fixed
-      if (f.status == Flags::FIXED) continue;
+      if (f.status == Flags::FIXED) {
+        external->rater->clauseDeleted(&cls[0], cls.size());
+        continue;
+      }
       // Actually add the unit clause
       if (add) assign_original_unit (ilit);
     }
@@ -343,6 +351,7 @@ void Internal::import_redundant_clauses (int& res) {
       return;
     }
   }
+  external->rater->unlock ();
 }
 
 /*------------------------------------------------------------------------*/

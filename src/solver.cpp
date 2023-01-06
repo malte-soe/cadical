@@ -742,6 +742,7 @@ void Solver::disconnect_learn_source () {
 }
 
 void Solver::connect_rater (Rater * rater) {
+  rater->setExternalize([&] (int lit) {return internal->externalize(lit);});
   external->rater = rater;
 }
 void Solver::disconnect_rater () {

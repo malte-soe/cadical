@@ -590,6 +590,7 @@ Internal::try_to_eliminate_variable (Eliminator & eliminator, int pivot) {
 
 void
 Internal::mark_redundant_clauses_with_eliminated_variables_as_garbage () {
+  external->rater->lock ();
   for (const auto & c : clauses) {
     if (c->garbage || !c->redundant) continue;
     bool clean = true;
@@ -598,8 +599,12 @@ Internal::mark_redundant_clauses_with_eliminated_variables_as_garbage () {
       if (f.eliminated ()) { clean = false; break; }
       if (f.pure ()) { clean = false; break; }
     }
-    if (!clean) mark_garbage (c);
+    if (!clean) {
+      mark_garbage (c);
+      external->rater->clauseDeleted (c);
+    }
   }
+  external->rater->unlock ();
 }
 
 /*------------------------------------------------------------------------*/

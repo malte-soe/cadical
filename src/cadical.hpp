@@ -4,8 +4,7 @@
 #include <cstdio>
 #include <cstdint>
 #include <vector>
-
-#include "clause.hpp"
+#include <functional>
 
 namespace CaDiCaL {
 
@@ -186,6 +185,7 @@ enum State
 
 // Opaque classes needed in the API and declared in the same namespace.
 
+class Clause;
 class File;
 struct Internal;
 struct External;
@@ -875,6 +875,11 @@ public:
   virtual ~Rater () { }
   virtual bool rating () = 0;
   virtual void rate (const std::vector<Clause*>& clauses) = 0;
+  virtual void setExternalize(std::function<int(int)> function) = 0;
+  virtual void clauseDeleted(const Clause* clause) = 0;
+  virtual void clauseDeleted(const int* begin, int size) = 0;
+  virtual void lock() = 0;
+  virtual void unlock() = 0;
 };
 
 /*------------------------------------------------------------------------*/
